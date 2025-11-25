@@ -49,7 +49,7 @@ const getTheme = (isDark: boolean) => {
     '.cm-content': {
       padding: '0',
       fontSize: '14px',
-      fontFamily: 'var(--font-mono)',
+      fontFamily: 'var(--font-jetbrains-mono), monospace',
       lineHeight: '1.6',
       caretColor: isDark ? 'var(--foreground)' : 'var(--primary)',
     },
@@ -101,7 +101,7 @@ const getTheme = (isDark: boolean) => {
       color: 'var(--popover-foreground)',
     },
     '.cm-tooltip.cm-tooltip-autocomplete > ul': {
-      fontFamily: 'var(--font-mono)',
+      fontFamily: 'var(--font-jetbrains-mono), monospace',
       fontSize: '13px',
       maxHeight: '300px',
     },
