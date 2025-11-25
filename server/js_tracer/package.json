@@ -1,0 +1,13 @@
+{
+  "name": "js-tracer",
+  "version": "1.0.0",
+  "main": "tracer.js",
+  "dependencies": {
+    "acorn": "^8.11.3",
+    "astring": "^1.8.6",
+    "estree-walker": "^3.0.3"
+  }
+}
+
+
+
