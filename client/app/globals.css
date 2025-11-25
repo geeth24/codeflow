@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -117,7 +117,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary;
+    @apply bg-background text-foreground selection:bg-primary/20 selection:text-primary antialiased;
     cursor: url('/cursor-light.svg'), auto;
   }
 
@@ -125,32 +125,38 @@
     cursor: url('/cursor-dark.svg'), auto;
   }
 
-  a, button, [role="button"], input[type="submit"], input[type="button"], select, label {
+  a,
+  button,
+  [role='button'],
+  input[type='submit'],
+  input[type='button'],
+  select,
+  label {
     cursor: url('/pointer-light.svg'), pointer;
   }
 
-  :is(.dark) a, 
-  :is(.dark) button, 
-  :is(.dark) [role="button"], 
-  :is(.dark) input[type="submit"], 
-  :is(.dark) input[type="button"], 
-  :is(.dark) select, 
+  :is(.dark) a,
+  :is(.dark) button,
+  :is(.dark) [role='button'],
+  :is(.dark) input[type='submit'],
+  :is(.dark) input[type='button'],
+  :is(.dark) select,
   :is(.dark) label {
     cursor: url('/pointer-dark.svg'), pointer;
   }
-  
+
   /* Glassmorphism utilities */
   .glass {
-    @apply bg-card/50 backdrop-blur-md border border-border/50 shadow-sm;
+    @apply bg-card/50 border-border/50 border shadow-sm backdrop-blur-md;
   }
-  
+
   .glass-panel {
-    @apply bg-card/80 backdrop-blur-xl border border-border shadow-lg;
+    @apply bg-card/80 border-border border shadow-lg backdrop-blur-xl;
   }
 
   /* Inner Shadow Utilities */
   .inset-panel {
-    @apply bg-muted/30 border border-border/50 shadow-inner;
+    @apply bg-muted/30 border-border/50 border shadow-inner;
   }
 }
 
@@ -165,5 +171,59 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+  @apply bg-muted-foreground/20 hover:bg-muted-foreground/40 rounded-full transition-colors;
+}
+
+/* Enable native smooth momentum scrolling on touch devices */
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Custom scrollbar class with thinner scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/15 hover:bg-muted-foreground/30 rounded-full;
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.2) transparent;
+}
+
+/* Ensure overflow containers have proper scrolling */
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* CodeMirror Breakpoint Gutter */
+.cm-breakpoint-gutter {
+  width: 20px !important;
+  cursor: pointer;
+}
+
+.cm-breakpoint-gutter .cm-gutterElement {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+  transition: background-color 0.15s ease;
+}
+
+.cm-breakpoint-gutter .cm-gutterElement:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.cm-breakpoint-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

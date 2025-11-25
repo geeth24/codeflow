@@ -14,6 +14,127 @@ function walk(node, { enter }, parent = null, parentKey = null) {
   }
 }
 
+/**
+ * Recursively serialize a JavaScript value to JSON-compatible format.
+ * Handles class instances, circular references, and complex objects.
+ */
+function serializeValue(value, depth = 0, maxDepth = 5, seen = new WeakSet()) {
+  // Prevent infinite recursion
+  if (depth > maxDepth) {
+    return '<max depth>';
+  }
+  
+  // Handle primitives
+  if (value === null) return null;
+  if (value === undefined) return undefined;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') {
+    if (Number.isNaN(value)) return 'NaN';
+    if (!Number.isFinite(value)) return value > 0 ? 'Infinity' : '-Infinity';
+    return value;
+  }
+  if (typeof value === 'string') {
+    return value.length > 200 ? value.slice(0, 200) + '...' : value;
+  }
+  if (typeof value === 'symbol') return value.toString();
+  if (typeof value === 'bigint') return value.toString() + 'n';
+  
+  // Handle functions
+  if (typeof value === 'function') {
+    return `<function ${value.name || 'anonymous'}>`;
+  }
+  
+  // Check for circular references
+  if (typeof value === 'object') {
+    if (seen.has(value)) {
+      return '<circular>';
+    }
+    seen.add(value);
+  }
+  
+  try {
+    // Handle arrays
+    if (Array.isArray(value)) {
+      const result = [];
+      const limit = Math.min(value.length, 20);
+      for (let i = 0; i < limit; i++) {
+        result.push(serializeValue(value[i], depth + 1, maxDepth, seen));
+      }
+      if (value.length > 20) {
+        result.push(`... +${value.length - 20} more`);
+      }
+      return result;
+    }
+    
+    // Handle Map
+    if (value instanceof Map) {
+      const obj = {};
+      let count = 0;
+      for (const [k, v] of value) {
+        if (count >= 20) break;
+        obj[String(k)] = serializeValue(v, depth + 1, maxDepth, seen);
+        count++;
+      }
+      return obj;
+    }
+    
+    // Handle Set
+    if (value instanceof Set) {
+      return serializeValue([...value], depth + 1, maxDepth, seen);
+    }
+    
+    // Handle Date
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+    
+    // Handle RegExp
+    if (value instanceof RegExp) {
+      return value.toString();
+    }
+    
+    // Handle Error
+    if (value instanceof Error) {
+      return { error: value.message, stack: value.stack?.split('\n').slice(0, 3) };
+    }
+    
+    // Handle plain objects and class instances
+    if (typeof value === 'object') {
+      const result = {};
+      const keys = Object.keys(value);
+      const limit = Math.min(keys.length, 20);
+      
+      for (let i = 0; i < limit; i++) {
+        const key = keys[i];
+        if (key.startsWith('__')) continue;
+        try {
+          result[key] = serializeValue(value[key], depth + 1, maxDepth, seen);
+        } catch (e) {
+          result[key] = '<error>';
+        }
+      }
+      
+      // For class instances, also check for common data structure properties
+      const specialProps = ['val', 'value', 'data', 'key', 'left', 'right', 'next', 'prev', 'children', 'root', 'head'];
+      for (const prop of specialProps) {
+        if (prop in value && !(prop in result)) {
+          try {
+            result[prop] = serializeValue(value[prop], depth + 1, maxDepth, seen);
+          } catch (e) {
+            // Skip if can't serialize
+          }
+        }
+      }
+      
+      return result;
+    }
+    
+    return `<${typeof value}>`;
+  } catch (e) {
+    return `<error: ${e.message?.slice(0, 50) || 'unknown'}>`;
+  }
+}
+
 async function traceExecution(code) {
   const trace = [];
   let stepCounter = 0;
@@ -27,16 +148,8 @@ async function traceExecution(code) {
     for (const name of varNames) {
       try {
         const value = evalFunc(name);
-        // Only capture primitives or simple objects to avoid circular refs/serialization issues
-        if (typeof value === 'function') {
-            locals[name] = `<function ${value.name || 'anonymous'}>`;
-        } else if (typeof value === 'undefined') {
-            // locals[name] = 'undefined'; // Skip undefined to keep noise down? Or show it?
-            // Python tracer shows None.
-            locals[name] = 'undefined';
-        } else {
-             locals[name] = value;
-        }
+        // Use our custom serializer to properly handle class instances
+        locals[name] = serializeValue(value);
       } catch (e) {
         // Variable likely in TDZ (Temporal Dead Zone) or not initialized
         // We just skip it
@@ -44,8 +157,6 @@ async function traceExecution(code) {
     }
 
     // Capture simple stack trace
-    // We can't easily get "main", "fibonacci" function names without more complex AST analysis of where we are.
-    // But Error().stack might give us hints if named functions are used.
     const stackRaw = new Error().stack || '';
     // Filter stack to remove internal frames
     const stack = stackRaw.split('\n')
@@ -56,7 +167,7 @@ async function traceExecution(code) {
     trace.push({
       step: stepCounter,
       line: line,
-      locals: JSON.parse(JSON.stringify(locals)), // Deep copy to snapshot state
+      locals: locals, // Already serialized, no need for JSON.parse/stringify
       stack: stack.length ? stack : ['main']
     });
   };

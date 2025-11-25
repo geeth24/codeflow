@@ -1,32 +1,32 @@
+from typing import Any
+
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
 
 
 class TraceStep(BaseModel):
     step: int
     line: int
-    locals: Dict[str, Any]
-    stack: List[str]
+    locals: dict[str, Any]
+    stack: list[str]
 
 
 class RunRequest(BaseModel):
     code: str
     language: str = "python"
-    input: Optional[str] = None
+    input: str | None = None
 
 
 class RunResponse(BaseModel):
-    trace: List[TraceStep]
-    output: Optional[str] = None
-    error: Optional[str] = None
-    modified_code: Optional[str] = None
+    trace: list[TraceStep]
+    output: str | None = None
+    error: str | None = None
+    modified_code: str | None = None
 
 
 class ExplainRequest(BaseModel):
     code: str
-    trace: List[Dict[str, Any]]
+    trace: list[dict[str, Any]]
 
 
 class ExplainResponse(BaseModel):
     explanation: str
-
