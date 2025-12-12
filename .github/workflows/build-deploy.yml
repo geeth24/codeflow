@@ -74,25 +74,19 @@ jobs:
     steps:
       - name: Deploy with Helm
         run: |
-          echo "🚀 Deploying CodeFlow..."
-          helm upgrade codeflow /home/geeth/Development/k8s/helm/codeflow-chart -n default
-          
-      - name: Restart CodeFlow Deployments
-        run: |
-          echo "♻️ Restarting CodeFlow deployments..."
-          kubectl rollout restart deployment codeflow-backend codeflow-frontend codeflow-runner-node -n default
-          
-      - name: Wait for Rollout
-        run: |
-          echo "⏳ Waiting for rollout to complete..."
-          kubectl rollout status deployment codeflow-backend -n default --timeout=300s
-          kubectl rollout status deployment codeflow-frontend -n default --timeout=300s
-          kubectl rollout status deployment codeflow-runner-node -n default --timeout=300s
+          helm upgrade --install codeflow \
+            /home/geeth/Development/k8s/helm/codeflow-chart \
+            -n default \
+            --set backend.image.tag=latest \
+            --set frontend.image.tag=latest \
+            --set runner.image.tag=latest \
+            --wait
           
       - name: Deployment Summary
         run: |
-          echo "✅ Deployment complete!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "✅ CodeFlow deployment complete!"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           echo ""
-          echo "📊 Current status:"
-          kubectl get pods -n default | grep codeflow
+          kubectl get pods -n default -l app=codeflow
 
