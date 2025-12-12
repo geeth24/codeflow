@@ -321,14 +321,14 @@ export default function Home() {
             <Network className="h-4 w-4" />
           </Button>
 
-          <Button
+          {/* <Button
             variant={showTutor ? 'secondary' : 'ghost'}
             size="icon"
             className="hover:bg-muted h-10 w-10 rounded-full"
             onClick={() => setShowTutor(!showTutor)}
           >
             <AppLogo className="h-5 w-5" />
-          </Button>
+          </Button> */}
 
           <Button
             onClick={handleRun}
